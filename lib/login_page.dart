@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
+import 'all_tasks_screen.dart'; // Import AllTasksScreen instead of HomePage
 
 // Shared data structure to simulate a database
 class UserAuth {
@@ -34,9 +35,10 @@ class _LoginPageState extends State<LoginPage> {
       Future.delayed(const Duration(seconds: 1), () {
         if (UserAuth.savedEmail == _emailController.text.trim() &&
             UserAuth.savedPassword == _passwordController.text.trim()) {
+          // Navigate directly to AllTasksScreen instead of HomePage
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
+            MaterialPageRoute(builder: (context) => const AllTasksScreen()),
           );
         } else {
           setState(() {
@@ -625,24 +627,6 @@ class _SignupPageState extends State<SignupPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Home Page (blank page after login)
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daily TODO'),
-        backgroundColor: const Color(0xFFFFC1D1),
-      ),
-      body: const Center(
-        child: Text('Welcome to Daily TODO!', style: TextStyle(fontSize: 24)),
       ),
     );
   }
