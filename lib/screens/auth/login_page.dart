@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sabay_list_itc/screens/all_tasks_screen.dart';
+import 'package:sabay_list_itc/widgets/main_navigation.dart'; // Updated import path
 import 'package:sabay_list_itc/auth/auth_service.dart';
 import 'package:sabay_list_itc/screens/auth/signup_page.dart';
 
+// ... rest of the file remains the same
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
         )) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const AllTasksScreen()),
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
             (route) => false,
           );
         } else {
@@ -203,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildSignupButton() {
     return TextButton(
       onPressed: () {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const SignupPage()),
         );

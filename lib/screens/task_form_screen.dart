@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'all_tasks_screen.dart';
+import 'package:sabay_list_itc/services/task_service.dart';
+import 'package:intl/intl.dart';
 
 class TaskFormScreen extends StatefulWidget {
   final Task? task; // null for new task, existing task for editing
@@ -16,14 +17,13 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   final _descriptionController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  String _selectedCategory = 'Work';
+  Color _selectedColor = const Color(0xFF9C88FF);
 
-  final List<String> _categories = ['Work', 'Personal', 'Health', 'Study'];
-  final List<Color> _categoryColors = [
-    const Color(0xFFFF6B9D),
+  final List<Color> _borderColors = [
     const Color(0xFF9C88FF),
     const Color(0xFFFFB366),
     const Color(0xFF66D9EF),
+    const Color(0xFFFF6B9D),
   ];
 
   @override
@@ -32,6 +32,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     if (widget.task != null) {
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
+      _selectedDate = widget.task!.deadline;
+      _selectedTime = TimeOfDay.fromDateTime(widget.task!.deadline);
+      _selectedColor = widget.task!.borderColor;
     }
   }
 
@@ -95,39 +98,32 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       return;
     }
 
-    final categoryIndex = _categories.indexOf(_selectedCategory);
+    final deadline = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
     final task = Task(
       id: widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text,
-      time:
-          '${_selectedTime.format(context)} - ${TimeOfDay(hour: _selectedTime.hour + 2, minute: _selectedTime.minute).format(context)}',
+      time: _selectedTime.format(context),
+      deadline: deadline,
       isCompleted: widget.task?.isCompleted ?? false,
-      borderColor: _categoryColors[categoryIndex],
+      borderColor: _selectedColor,
       description: _descriptionController.text.isEmpty
           ? 'No description'
           : _descriptionController.text,
     );
 
     widget.onTaskSaved(task);
-    Navigator.pop(context);
+    Navigator.pop(context, task);
   }
 
   String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}';
+    return DateFormat('EEEE MMM dd').format(date);
   }
 
   @override
@@ -176,7 +172,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // List Schedule Header with Image
+                        // List Schedule Header with Icon
                         Row(
                           children: [
                             Container(
@@ -236,20 +232,23 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         const SizedBox(height: 12),
 
                         // Date Display
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF9EA6),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Monday ${_formatDate(_selectedDate)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                        GestureDetector(
+                          onTap: _selectDate,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF9EA6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _formatDate(_selectedDate),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -291,7 +290,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.grey,
+                                  color: const Color(0xFFFF9EA6),
                                   width: 2,
                                 ),
                               ),
@@ -311,7 +310,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Category Section
+                        // Color Section
                         Row(
                           children: [
                             Container(
@@ -321,29 +320,42 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
-                                Icons.category,
+                                Icons.palette,
                                 color: Colors.white,
                                 size: 16,
                               ),
                             ),
                             const SizedBox(width: 12),
-                            DropdownButton<String>(
-                              value: _selectedCategory,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedCategory = newValue!;
-                                });
-                              },
-                              items: _categories.map<DropdownMenuItem<String>>((
-                                String value,
-                              ) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
+                            const Text(
+                              'Work',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Color Selection
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: _borderColors.map((color) {
+                            return GestureDetector(
+                              onTap: () => setState(() => _selectedColor = color),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: _selectedColor == color
+                                      ? Border.all(color: Colors.black, width: 3)
+                                      : null,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                         const SizedBox(height: 24),
 

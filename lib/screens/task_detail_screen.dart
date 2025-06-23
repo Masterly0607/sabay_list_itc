@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sabay_list_itc/screens/all_tasks_screen.dart';
+import 'package:sabay_list_itc/services/task_service.dart';
+import 'package:sabay_list_itc/screens/task_form_screen.dart';
+import 'package:intl/intl.dart';
 
-class TaskDetailScreen extends StatelessWidget {
+class TaskDetailScreen extends StatefulWidget {
   final Task task;
   final Function(Task) onTaskUpdated;
   final Function(String) onTaskDeleted;
@@ -13,15 +15,37 @@ class TaskDetailScreen extends StatelessWidget {
     required this.onTaskDeleted,
   });
 
-  void _editTask(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) =>
-          _EditTaskDialog(task: task, onTaskUpdated: onTaskUpdated),
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  late Task currentTask;
+
+  @override
+  void initState() {
+    super.initState();
+    currentTask = widget.task;
+  }
+
+  void _navigateToEditForm() async {
+    final updatedTask = await Navigator.push<Task>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskFormScreen(
+          task: currentTask,
+          onTaskSaved: (task) {
+            setState(() {
+              currentTask = task;
+            });
+            widget.onTaskUpdated(task);
+          },
+        ),
+      ),
     );
   }
 
-  void _deleteTask(BuildContext context) {
+  void _deleteTask() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -34,9 +58,9 @@ class TaskDetailScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              onTaskDeleted(task.id);
+              widget.onTaskDeleted(currentTask.id);
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Go back to task list
+              Navigator.pop(context); // Close detail screen
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete', style: TextStyle(color: Colors.white)),
@@ -44,6 +68,14 @@ class TaskDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _toggleCompletion() {
+    final updatedTask = currentTask.copyWith(isCompleted: !currentTask.isCompleted);
+    setState(() {
+      currentTask = updatedTask;
+    });
+    widget.onTaskUpdated(updatedTask);
   }
 
   @override
@@ -54,7 +86,6 @@ class TaskDetailScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
               Row(
@@ -74,60 +105,76 @@ class TaskDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48), // Balance the back button
+                  const SizedBox(width: 48),
                 ],
               ),
               const SizedBox(height: 30),
 
-              // Task Title Card
+              // Task Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: currentTask.borderColor, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      task.title,
-                      style: const TextStyle(
+                      currentTask.title,
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
+                        decoration: currentTask.isCompleted ? TextDecoration.lineThrough : null,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey, width: 2),
-                            color: task.isCompleted
-                                ? Colors.green
-                                : Colors.transparent,
+                        GestureDetector(
+                          onTap: _toggleCompletion,
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey, width: 2),
+                              color: currentTask.isCompleted ? Colors.green : Colors.transparent,
+                            ),
+                            child: currentTask.isCompleted
+                                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                : null,
                           ),
-                          child: task.isCompleted
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 14,
-                                  color: Colors.white,
-                                )
-                              : null,
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          task.time,
+                          currentTask.time,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Due: ${DateFormat('MMM dd, yyyy').format(currentTask.deadline)}',
+                      style: TextStyle(
+                        color: currentTask.deadline.isBefore(DateTime.now()) && !currentTask.isCompleted
+                            ? Colors.red
+                            : Colors.grey,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -137,10 +184,17 @@ class TaskDetailScreen extends StatelessWidget {
               // Description Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,32 +207,33 @@ class TaskDetailScreen extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
-                      task.description,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      currentTask.description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
                       'Status',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: task.isCompleted ? Colors.green : Colors.orange,
+                        color: currentTask.isCompleted ? Colors.green : Colors.orange,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        task.isCompleted ? 'Completed' : 'Pending',
+                        currentTask.isCompleted ? 'Completed' : 'Pending',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -196,12 +251,10 @@ class TaskDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _editTask(context),
+                      onPressed: _navigateToEditForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF9EA6),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       icon: const Icon(Icons.edit, color: Colors.white),
@@ -218,20 +271,17 @@ class TaskDetailScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _deleteTask(context),
+                      onPressed: _deleteTask,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Colors.grey),
-                        ),
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      icon: const Icon(Icons.delete, color: Colors.black),
+                      icon: const Icon(Icons.delete, color: Colors.white),
                       label: const Text(
                         'Delete',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -245,125 +295,6 @@ class TaskDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _EditTaskDialog extends StatefulWidget {
-  final Task task;
-  final Function(Task) onTaskUpdated;
-
-  const _EditTaskDialog({required this.task, required this.onTaskUpdated});
-
-  @override
-  State<_EditTaskDialog> createState() => _EditTaskDialogState();
-}
-
-class _EditTaskDialogState extends State<_EditTaskDialog> {
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late bool _isCompleted;
-  late Color _selectedColor;
-
-  final List<Color> _borderColors = [
-    const Color(0xFF9C88FF),
-    const Color(0xFFFFB366),
-    const Color(0xFF66D9EF),
-    const Color(0xFFFF6B9D),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-    _descriptionController = TextEditingController(
-      text: widget.task.description,
-    );
-    _isCompleted = widget.task.isCompleted;
-    _selectedColor = widget.task.borderColor;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit Task'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Task Title',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Checkbox(
-                  value: _isCompleted,
-                  onChanged: (value) =>
-                      setState(() => _isCompleted = value ?? false),
-                ),
-                const Text('Completed'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text('Choose Color:'),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: _borderColors.map((color) {
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = color),
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: _selectedColor == color
-                          ? Border.all(color: Colors.black, width: 2)
-                          : null,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_titleController.text.isNotEmpty) {
-              final updatedTask = widget.task.copyWith(
-                title: _titleController.text,
-                description: _descriptionController.text,
-                isCompleted: _isCompleted,
-                borderColor: _selectedColor,
-              );
-              widget.onTaskUpdated(updatedTask);
-              Navigator.pop(context);
-            }
-          },
-          child: const Text('Save Changes'),
-        ),
-      ],
     );
   }
 }
