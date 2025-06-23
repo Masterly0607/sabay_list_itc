@@ -161,47 +161,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
 
+              // Spacer to push content to the top
               const Spacer(),
-
-              // Bottom Navigation with active profile icon (original style)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Go back to home
-                      },
-                      icon: const Icon(Icons.home, color: Colors.grey),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AllTasksScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.list, color: Colors.grey),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B9D), // Pink background
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.person, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         ),

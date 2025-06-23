@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sabay_list_itc/screens/home_screen.dart';
 import 'package:sabay_list_itc/screens/all_tasks_screen.dart';
-import 'package:sabay_list_itc/widgets/profile_screen.dart';
+import 'package:sabay_list_itc/screens/profile_screen.dart';
+import 'package:sabay_list_itc/screens/edit_profile_screen.dart';
+import 'package:sabay_list_itc/screens/todo_task_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -16,7 +18,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const AllTasksScreen(),
-    const ProfileScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -51,7 +53,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Widget _buildNavItem(int index, IconData icon) {
     final isSelected = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
