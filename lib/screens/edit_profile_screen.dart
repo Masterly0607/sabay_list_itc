@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'all_tasks_screen.dart';
 import 'profile_screen.dart';
+import 'package:sabay_list_itc/widgets/main_navigation.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String currentName;
@@ -30,7 +31,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // Default placeholder image
   final String _defaultImageUrl =
       'https://via.placeholder.com/150'; // Network placeholder
-  // Alternatively, use an asset: 'assets/images/default_profile.png'
 
   @override
   void initState() {
@@ -94,8 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               ),
                               const SizedBox(height: 15),
                               GestureDetector(
-                                onTap:
-                                    _showPhotoOptions, // Prompt user to change image
+                                onTap: _showPhotoOptions,
                                 child: Container(
                                   width: 120,
                                   height: 120,
@@ -113,16 +112,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                       _defaultImageUrl
                                                   ? NetworkImage(
                                                       _defaultImageUrl,
-                                                    ) // Use default
+                                                    )
                                                   : NetworkImage(
                                                       _currentImageUrl,
-                                                    ), // Use user image
+                                                    ),
                                               fit: BoxFit.cover,
                                               onError:
                                                   (exception, stackTrace) =>
                                                       NetworkImage(
                                                         _defaultImageUrl,
-                                                      ), // Fallback
+                                                      ),
                                             ),
                                           ),
                                         ),
@@ -307,42 +306,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.home, color: Colors.grey),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF9EA6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.list, color: Colors.white),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProfileScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.person, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+              // Footer removed
+              // const SizedBox(height: 20), // Optionally keep some space at the bottom
             ],
           ),
         ),
