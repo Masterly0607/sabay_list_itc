@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sabay_list_itc/screens/auth/signup_page.dart';
-import 'screens/auth/login_page.dart' hide SignupPage;
-import 'screens/auth/signup_page.dart' hide SignupPage;
+import 'auth/login_page.dart' hide SignupPage;
+import 'auth/signup_page.dart' hide SignupPage;
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});

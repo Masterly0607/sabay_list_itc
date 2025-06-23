@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'all_tasks_screen.dart';
+import 'package:sabay_list_itc/screens/all_tasks_screen.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   final Task task;
@@ -16,10 +16,8 @@ class TaskDetailScreen extends StatelessWidget {
   void _editTask(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => _EditTaskDialog(
-        task: task,
-        onTaskUpdated: onTaskUpdated,
-      ),
+      builder: (context) =>
+          _EditTaskDialog(task: task, onTaskUpdated: onTaskUpdated),
     );
   }
 
@@ -63,10 +61,7 @@ class TaskDetailScreen extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.black,
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
                   ),
                   const Expanded(
                     child: Text(
@@ -83,7 +78,7 @@ class TaskDetailScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 30),
-              
+
               // Task Title Card
               Container(
                 width: double.infinity,
@@ -112,11 +107,17 @@ class TaskDetailScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.grey, width: 2),
-                            color: task.isCompleted ? Colors.green : Colors.transparent,
+                            color: task.isCompleted
+                                ? Colors.green
+                                : Colors.transparent,
                           ),
                           child: task.isCompleted
-                            ? const Icon(Icons.check, size: 14, color: Colors.white)
-                            : null,
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: Colors.white,
+                                )
+                              : null,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -132,7 +133,7 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Description Card
               Container(
                 width: double.infinity,
@@ -155,10 +156,7 @@ class TaskDetailScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       task.description,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -192,7 +190,7 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              
+
               // Action Buttons
               Row(
                 children: [
@@ -255,10 +253,7 @@ class _EditTaskDialog extends StatefulWidget {
   final Task task;
   final Function(Task) onTaskUpdated;
 
-  const _EditTaskDialog({
-    required this.task,
-    required this.onTaskUpdated,
-  });
+  const _EditTaskDialog({required this.task, required this.onTaskUpdated});
 
   @override
   State<_EditTaskDialog> createState() => _EditTaskDialogState();
@@ -281,7 +276,9 @@ class _EditTaskDialogState extends State<_EditTaskDialog> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task.title);
-    _descriptionController = TextEditingController(text: widget.task.description);
+    _descriptionController = TextEditingController(
+      text: widget.task.description,
+    );
     _isCompleted = widget.task.isCompleted;
     _selectedColor = widget.task.borderColor;
   }
@@ -315,7 +312,8 @@ class _EditTaskDialogState extends State<_EditTaskDialog> {
               children: [
                 Checkbox(
                   value: _isCompleted,
-                  onChanged: (value) => setState(() => _isCompleted = value ?? false),
+                  onChanged: (value) =>
+                      setState(() => _isCompleted = value ?? false),
                 ),
                 const Text('Completed'),
               ],
@@ -335,8 +333,8 @@ class _EditTaskDialogState extends State<_EditTaskDialog> {
                       color: color,
                       shape: BoxShape.circle,
                       border: _selectedColor == color
-                        ? Border.all(color: Colors.black, width: 2)
-                        : null,
+                          ? Border.all(color: Colors.black, width: 2)
+                          : null,
                     ),
                   ),
                 );

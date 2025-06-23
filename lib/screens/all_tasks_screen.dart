@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'task_detail_screen.dart';
+import 'package:sabay_list_itc/screens/task_detail_screen.dart';
 
 // Task model
 class Task {
@@ -47,7 +47,7 @@ class AllTasksScreen extends StatefulWidget {
 
 class _AllTasksScreenState extends State<AllTasksScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
+
   List<Task> tasks = [
     Task(
       id: '1',
@@ -79,9 +79,13 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
     if (_searchController.text.isEmpty) {
       return tasks;
     }
-    return tasks.where((task) => 
-      task.title.toLowerCase().contains(_searchController.text.toLowerCase())
-    ).toList();
+    return tasks
+        .where(
+          (task) => task.title.toLowerCase().contains(
+            _searchController.text.toLowerCase(),
+          ),
+        )
+        .toList();
   }
 
   void _toggleTaskCompletion(String taskId) {
@@ -118,7 +122,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
             setState(() {
               final taskIndex = tasks.indexWhere((t) => t.id == task.id);
               if (taskIndex != -1) {
-                tasks[taskIndex] = updatedTask;
+                tasks[taskIndex] = updatedTask as Task;
               }
             });
           },
@@ -153,7 +157,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Search Bar
               Row(
                 children: [
@@ -186,16 +190,13 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                     ),
                     child: IconButton(
                       onPressed: () {},
-                      icon: const Icon(
-                        Icons.search,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.search, color: Colors.white),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              
+
               // Task List
               Expanded(
                 child: ListView.builder(
@@ -207,10 +208,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: task.borderColor,
-                          width: 3,
-                        ),
+                        border: Border.all(color: task.borderColor, width: 3),
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(16),
@@ -221,9 +219,9 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
-                            decoration: task.isCompleted 
-                              ? TextDecoration.lineThrough 
-                              : null,
+                            decoration: task.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                         subtitle: Padding(
@@ -241,17 +239,17 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                                       color: Colors.grey,
                                       width: 2,
                                     ),
-                                    color: task.isCompleted 
-                                      ? Colors.green 
-                                      : Colors.transparent,
+                                    color: task.isCompleted
+                                        ? Colors.green
+                                        : Colors.transparent,
                                   ),
                                   child: task.isCompleted
-                                    ? const Icon(
-                                        Icons.check,
-                                        size: 14,
-                                        color: Colors.white,
-                                      )
-                                    : null,
+                                      ? const Icon(
+                                          Icons.check,
+                                          size: 14,
+                                          color: Colors.white,
+                                        )
+                                      : null,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -270,7 +268,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                   },
                 ),
               ),
-              
+
               // New Task Button
               Center(
                 child: ElevatedButton.icon(
@@ -297,7 +295,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Bottom Navigation
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -318,10 +316,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                         color: const Color(0xFFFF9EA6),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
-                        Icons.list,
-                        color: Colors.white,
-                      ),
+                      child: const Icon(Icons.list, color: Colors.white),
                     ),
                     IconButton(
                       onPressed: () {},
@@ -396,8 +391,8 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
                     color: color,
                     shape: BoxShape.circle,
                     border: _selectedColor == color
-                      ? Border.all(color: Colors.black, width: 2)
-                      : null,
+                        ? Border.all(color: Colors.black, width: 2)
+                        : null,
                   ),
                 ),
               );
@@ -419,9 +414,9 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
                 time: '8 AM - 10 AM',
                 isCompleted: false,
                 borderColor: _selectedColor,
-                description: _descriptionController.text.isEmpty 
-                  ? 'No description' 
-                  : _descriptionController.text,
+                description: _descriptionController.text.isEmpty
+                    ? 'No description'
+                    : _descriptionController.text,
               );
               widget.onTaskAdded(newTask);
               Navigator.pop(context);

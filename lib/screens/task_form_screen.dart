@@ -5,11 +5,7 @@ class TaskFormScreen extends StatefulWidget {
   final Task? task; // null for new task, existing task for editing
   final Function(Task) onTaskSaved;
 
-  const TaskFormScreen({
-    super.key,
-    this.task,
-    required this.onTaskSaved,
-  });
+  const TaskFormScreen({super.key, this.task, required this.onTaskSaved});
 
   @override
   State<TaskFormScreen> createState() => _TaskFormScreenState();
@@ -21,7 +17,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _selectedCategory = 'Work';
-  
+
   final List<String> _categories = ['Work', 'Personal', 'Health', 'Study'];
   final List<Color> _categoryColors = [
     const Color(0xFFFF6B9D),
@@ -103,12 +99,13 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     final task = Task(
       id: widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text,
-      time: '${_selectedTime.format(context)} - ${TimeOfDay(hour: _selectedTime.hour + 2, minute: _selectedTime.minute).format(context)}',
+      time:
+          '${_selectedTime.format(context)} - ${TimeOfDay(hour: _selectedTime.hour + 2, minute: _selectedTime.minute).format(context)}',
       isCompleted: widget.task?.isCompleted ?? false,
       borderColor: _categoryColors[categoryIndex],
-      description: _descriptionController.text.isEmpty 
-        ? 'No description' 
-        : _descriptionController.text,
+      description: _descriptionController.text.isEmpty
+          ? 'No description'
+          : _descriptionController.text,
     );
 
     widget.onTaskSaved(task);
@@ -117,8 +114,18 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
@@ -138,10 +145,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.black,
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
                   ),
                   const Expanded(
                     child: Text(
@@ -158,7 +162,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 ],
               ),
               const SizedBox(height: 30),
-              
+
               // Form Card
               Expanded(
                 child: Container(
@@ -182,10 +186,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                 color: const Color(0xFFFF9EA6),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.white,
-                              ),
+                              child: const Icon(Icons.add, color: Colors.white),
                             ),
                             const SizedBox(width: 12),
                             const Text(
@@ -199,7 +200,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        
+
                         // Decorative Image
                         Container(
                           width: double.infinity,
@@ -222,7 +223,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Title Section
                         const Text(
                           'Title',
@@ -233,7 +234,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        
+
                         // Date Display
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -253,7 +254,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Title Input
                         TextField(
                           controller: _titleController,
@@ -261,20 +262,26 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                             hintText: 'Enter task title',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFFF9EA6)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFFF9EA6),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 20),
-                        
+
                         // Time Section
                         Row(
                           children: [
@@ -283,7 +290,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                               height: 20,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey, width: 2),
+                                border: Border.all(
+                                  color: Colors.grey,
+                                  width: 2,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -300,7 +310,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        
+
                         // Category Section
                         Row(
                           children: [
@@ -324,7 +334,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                   _selectedCategory = newValue!;
                                 });
                               },
-                              items: _categories.map<DropdownMenuItem<String>>((String value) {
+                              items: _categories.map<DropdownMenuItem<String>>((
+                                String value,
+                              ) {
                                 return DropdownMenuItem<String>(
                                   value: value,
                                   child: Text(value),
@@ -334,7 +346,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Description Input
                         TextField(
                           controller: _descriptionController,
@@ -343,20 +355,26 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                             hintText: 'Enter description (optional)',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFFF9EA6)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFFF9EA6),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 30),
-                        
+
                         // Save Button
                         SizedBox(
                           width: double.infinity,

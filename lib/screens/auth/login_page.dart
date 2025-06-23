@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sabay_list_itc/all_tasks_screen.dart';
+import 'package:sabay_list_itc/screens/all_tasks_screen.dart';
 import 'package:sabay_list_itc/auth/auth_service.dart';
 import 'package:sabay_list_itc/screens/auth/signup_page.dart';
 
