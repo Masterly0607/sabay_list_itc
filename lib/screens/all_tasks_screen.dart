@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sabay_list_itc/screens/task_detail_screen.dart';
+import 'profile_screen.dart';
 
 // Task model
 class Task {
@@ -122,7 +123,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
             setState(() {
               final taskIndex = tasks.indexWhere((t) => t.id == task.id);
               if (taskIndex != -1) {
-                tasks[taskIndex] = updatedTask as Task;
+                tasks[taskIndex] = updatedTask;
               }
             });
           },
@@ -307,7 +308,8 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     IconButton(
-                      onPressed: () {},
+                      onPressed:
+                          () {}, // Home button action (implement if needed)
                       icon: const Icon(Icons.home, color: Colors.grey),
                     ),
                     Container(
@@ -319,7 +321,15 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                       child: const Icon(Icons.list, color: Colors.white),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Navigate to ProfileScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(),
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.person, color: Colors.grey),
                     ),
                   ],
