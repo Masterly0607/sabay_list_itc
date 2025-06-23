@@ -1,42 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sabay_list_itc/screens/task_detail_screen.dart';
-
-// Task model
-class Task {
-  final String id;
-  final String title;
-  final String time;
-  final bool isCompleted;
-  final Color borderColor;
-  final String description;
-
-  Task({
-    required this.id,
-    required this.title,
-    required this.time,
-    required this.isCompleted,
-    required this.borderColor,
-    this.description = 'No description',
-  });
-
-  Task copyWith({
-    String? id,
-    String? title,
-    String? time,
-    bool? isCompleted,
-    Color? borderColor,
-    String? description,
-  }) {
-    return Task(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      time: time ?? this.time,
-      isCompleted: isCompleted ?? this.isCompleted,
-      borderColor: borderColor ?? this.borderColor,
-      description: description ?? this.description,
-    );
-  }
-}
+import 'package:sabay_list_itc/services/task_service.dart';
+import 'package:intl/intl.dart';
 
 class AllTasksScreen extends StatefulWidget {
   const AllTasksScreen({super.key});
@@ -47,56 +12,28 @@ class AllTasksScreen extends StatefulWidget {
 
 class _AllTasksScreenState extends State<AllTasksScreen> {
   final TextEditingController _searchController = TextEditingController();
+  late TaskService _taskService;
 
-  List<Task> tasks = [
-    Task(
-      id: '1',
-      title: 'complete project proposal',
-      time: '8 AM - 10 AM',
-      isCompleted: false,
-      borderColor: const Color(0xFF9C88FF),
-      description: 'Finish the project proposal for the client meeting',
-    ),
-    Task(
-      id: '2',
-      title: 'Review team updates',
-      time: '8 AM - 10 AM',
-      isCompleted: false,
-      borderColor: const Color(0xFFFFB366),
-      description: 'Review all team member updates and provide feedback',
-    ),
-    Task(
-      id: '3',
-      title: 'Gym workout',
-      time: '8 AM - 10 AM',
-      isCompleted: true,
-      borderColor: const Color(0xFF66D9EF),
-      description: 'Complete full body workout routine',
-    ),
-  ];
-
-  List<Task> get filteredTasks {
-    if (_searchController.text.isEmpty) {
-      return tasks;
-    }
-    return tasks
-        .where(
-          (task) => task.title.toLowerCase().contains(
-            _searchController.text.toLowerCase(),
-          ),
-        )
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _taskService = TaskService();
+    _taskService.addListener(_onTasksChanged);
   }
 
-  void _toggleTaskCompletion(String taskId) {
-    setState(() {
-      final taskIndex = tasks.indexWhere((task) => task.id == taskId);
-      if (taskIndex != -1) {
-        tasks[taskIndex] = tasks[taskIndex].copyWith(
-          isCompleted: !tasks[taskIndex].isCompleted,
-        );
-      }
-    });
+  @override
+  void dispose() {
+    _taskService.removeListener(_onTasksChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onTasksChanged() {
+    setState(() {});
+  }
+
+  List<Task> get filteredTasks {
+    return _taskService.searchTasks(_searchController.text);
   }
 
   void _addNewTask() {
@@ -104,32 +41,23 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
       context: context,
       builder: (context) => _NewTaskDialog(
         onTaskAdded: (task) {
-          setState(() {
-            tasks.add(task);
-          });
+          _taskService.addTask(task);
         },
       ),
     );
   }
 
   void _navigateToTaskDetail(Task task) async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => TaskDetailScreen(
           task: task,
           onTaskUpdated: (updatedTask) {
-            setState(() {
-              final taskIndex = tasks.indexWhere((t) => t.id == task.id);
-              if (taskIndex != -1) {
-                tasks[taskIndex] = updatedTask as Task;
-              }
-            });
+            _taskService.updateTask(updatedTask as Task);
           },
           onTaskDeleted: (taskId) {
-            setState(() {
-              tasks.removeWhere((t) => t.id == taskId);
-            });
+            _taskService.deleteTask(taskId);
           },
         ),
       ),
@@ -141,64 +69,61 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFC1D1),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              const SizedBox(height: 20),
-              const Text(
-                'All Tasks',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Search Bar
-              Row(
+        child: Column(
+          children: [
+            // Header and search section
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (value) => setState(() {}),
-                        decoration: const InputDecoration(
-                          hintText: 'Search Task',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                  const SizedBox(height: 20),
+                  const Text(
+                    'All Tasks',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) => setState(() {}),
+                            decoration: const InputDecoration(
+                              hintText: 'Search Task',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9EA6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.search, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF9EA6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search, color: Colors.white),
-                    ),
-                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // Task List
-              Expanded(
+            ),
+            // Tasks list
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ListView.builder(
                   itemCount: filteredTasks.length,
                   itemBuilder: (context, index) {
@@ -219,45 +144,46 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
-                            decoration: task.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
                           ),
                         ),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              GestureDetector(
-                                onTap: () => _toggleTaskCompletion(task.id),
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.grey,
-                                      width: 2,
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _taskService.toggleTaskCompletion(task.id),
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.grey, width: 2),
+                                        color: task.isCompleted ? Colors.green : Colors.transparent,
+                                      ),
+                                      child: task.isCompleted
+                                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                          : null,
                                     ),
-                                    color: task.isCompleted
-                                        ? Colors.green
-                                        : Colors.transparent,
                                   ),
-                                  child: task.isCompleted
-                                      ? const Icon(
-                                          Icons.check,
-                                          size: 14,
-                                          color: Colors.white,
-                                        )
-                                      : null,
-                                ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    task.time,
+                                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(height: 4),
                               Text(
-                                task.time,
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
+                                'Due: ${DateFormat('MMM dd, yyyy').format(task.deadline)}',
+                                style: TextStyle(
+                                  color: task.deadline.isBefore(DateTime.now()) && !task.isCompleted
+                                      ? Colors.red
+                                      : Colors.grey,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -268,65 +194,27 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                   },
                 ),
               ),
-
-              // New Task Button
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _addNewTask,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF9EA6),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text(
-                    'New Task',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+            ),
+            // New Task button with minimal spacing
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: _addNewTask,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF9EA6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'New Task',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Bottom Navigation
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.home, color: Colors.grey),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF9EA6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.list, color: Colors.white),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.person, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+            // Minimal space for bottom navigation
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
@@ -352,53 +240,103 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
     const Color(0xFFFF6B9D),
   ];
   Color _selectedColor = const Color(0xFF9C88FF);
+  DateTime _selectedDeadline = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Add New Task'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Task Title',
-              border: OutlineInputBorder(),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Task Title',
+                border: OutlineInputBorder(),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
-            maxLines: 3,
-          ),
-          const SizedBox(height: 16),
-          const Text('Choose Color:'),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _borderColors.map((color) {
-              return GestureDetector(
-                onTap: () => setState(() => _selectedColor = color),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: _selectedColor == color
-                        ? Border.all(color: Colors.black, width: 2)
-                        : null,
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: const Text('Deadline'),
+                    subtitle: Text(DateFormat('MMM dd, yyyy').format(_selectedDeadline)),
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDeadline,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          _selectedDeadline = date;
+                        });
+                      }
+                    },
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: const Text('Time'),
+                    subtitle: Text(_selectedTime.format(context)),
+                    onTap: () async {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedTime,
+                      );
+                      if (time != null) {
+                        setState(() {
+                          _selectedTime = time;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text('Choose Color:'),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: _borderColors.map((color) {
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColor = color),
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: _selectedColor == color
+                          ? Border.all(color: Colors.black, width: 2)
+                          : null,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -408,10 +346,19 @@ class _NewTaskDialogState extends State<_NewTaskDialog> {
         ElevatedButton(
           onPressed: () {
             if (_titleController.text.isNotEmpty) {
+              final deadline = DateTime(
+                _selectedDeadline.year,
+                _selectedDeadline.month,
+                _selectedDeadline.day,
+                _selectedTime.hour,
+                _selectedTime.minute,
+              );
+              
               final newTask = Task(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 title: _titleController.text,
-                time: '8 AM - 10 AM',
+                time: _selectedTime.format(context),
+                deadline: deadline,
                 isCompleted: false,
                 borderColor: _selectedColor,
                 description: _descriptionController.text.isEmpty
