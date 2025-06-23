@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.pink,
         fontFamily: 'Arial',
       ),
-      home: const ProfileScreen(),
+      home: ProfileScreen(),
     );
   }
 }
