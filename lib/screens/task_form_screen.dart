@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:sabay_list_itc/services/task_service.dart';
-import 'package:intl/intl.dart';
+// Importing required packages
+import 'package:flutter/material.dart'; // Flutter UI widgets
+import 'package:sabay_list_itc/services/task_service.dart'; // Task model/service (custom)
+import 'package:intl/intl.dart'; // For formatting dates
 
+// Stateful widget for creating/editing a task
 class TaskFormScreen extends StatefulWidget {
-  final Task? task;
-  final Function(Task) onTaskSaved;
+  final Task? task; // Optional: the task to edit, if any
+  final Function(Task) onTaskSaved; // Callback to notify parent when task is saved
 
   const TaskFormScreen({super.key, this.task, required this.onTaskSaved});
 
@@ -12,13 +14,20 @@ class TaskFormScreen extends StatefulWidget {
   State<TaskFormScreen> createState() => _TaskFormScreenState();
 }
 
+// The State of TaskFormScreen holds form data and handles user interactions
 class _TaskFormScreenState extends State<TaskFormScreen> {
+  // Controllers for text inputs
   final _descriptionController = TextEditingController();
   final _taskNameController = TextEditingController();
+
+  // Selected date and time defaults
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+
+  // Default selected border color
   Color _selectedColor = const Color(0xFF9C88FF);
 
+  // List of available colors user can pick
   final List<Color> _borderColors = [
     const Color(0xFF9C88FF),
     const Color(0xFFFFB366),
@@ -29,8 +38,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   @override
   void initState() {
     super.initState();
+    // If editing an existing task, populate fields with its data
     if (widget.task != null) {
-      _taskNameController.text = widget.task!.title; // Task name is the title
+      _taskNameController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
       _selectedDate = widget.task!.deadline;
       _selectedTime = TimeOfDay.fromDateTime(widget.task!.deadline);
@@ -40,22 +50,25 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   @override
   void dispose() {
+    // Dispose controllers when widget is destroyed
     _descriptionController.dispose();
     _taskNameController.dispose();
     super.dispose();
   }
 
+  // Show date picker dialog
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)), // Allow past dates for editing
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
+        // Custom theme for the date picker
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFFFF9EA6),
+              primary: Color(0xFFFF9EA6), // Pink primary color
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -65,6 +78,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         );
       },
     );
+    // Update selected date if user picked one
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
@@ -72,6 +86,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     }
   }
 
+  // Show time picker dialog
   Future<void> _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -90,6 +105,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         );
       },
     );
+    // Update selected time if user picked one
     if (picked != null) {
       setState(() {
         _selectedTime = picked;
@@ -97,7 +113,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     }
   }
 
+  // Save the task and notify parent widget
   void _saveTask() {
+    // Validate: Task name cannot be empty
     if (_taskNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -108,6 +126,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       return;
     }
 
+    // Combine date and time into a single DateTime object
     final deadline = DateTime(
       _selectedDate.year,
       _selectedDate.month,
@@ -116,9 +135,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       _selectedTime.minute,
     );
 
+    // Create a new Task object
     final task = Task(
-      id: widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _taskNameController.text.trim(), // Use task name as title
+      id: widget.task?.id ?? DateTime.now().millisecondsSinceEpoch.toString(), // Use existing ID or generate new
+      title: _taskNameController.text.trim(),
       time: _selectedTime.format(context),
       deadline: deadline,
       isCompleted: widget.task?.isCompleted ?? false,
@@ -128,10 +148,13 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           : _descriptionController.text.trim(),
     );
 
+    // Notify parent via callback
     widget.onTaskSaved(task);
+    // Close the form screen
     Navigator.pop(context, task);
   }
 
+  // Helper to format date nicely
   String _formatDate(DateTime date) {
     return DateFormat('EEEE dd MMM').format(date);
   }
@@ -139,14 +162,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFC1D1),
+      backgroundColor: const Color(0xFFFFC1D1), // Pink background
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Top header with back button and title
               Row(
                 children: [
                   IconButton(
@@ -164,12 +187,12 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  const SizedBox(width: 48), // Spacer to align title
                 ],
               ),
               const SizedBox(height: 30),
 
-              // Form Card
+              // Main form card
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -182,7 +205,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // List Schedule Header with Icon
+                        // List Schedule header with icon
                         Row(
                           children: [
                             Container(
@@ -207,7 +230,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Decorative Image
+                        // Decorative image
                         Container(
                           width: double.infinity,
                           height: 120,
@@ -221,7 +244,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Title Section (Static)
+                        // Static title text
                         const Text(
                           'Title',
                           textAlign: TextAlign.center,
@@ -233,7 +256,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Date Row - Made more responsive
+                        // Date picker input
                         InkWell(
                           onTap: _selectDate,
                           borderRadius: BorderRadius.circular(12),
@@ -261,17 +284,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                const Icon(
-                                  Icons.keyboard_arrow_right,
-                                  color: Colors.grey,
-                                ),
+                                const Icon(Icons.keyboard_arrow_right, color: Colors.grey),
                               ],
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
 
-                        // Time Row - Made more responsive
+                        // Time picker input
                         InkWell(
                           onTap: _selectTime,
                           borderRadius: BorderRadius.circular(12),
@@ -299,17 +319,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                const Icon(
-                                  Icons.keyboard_arrow_right,
-                                  color: Colors.grey,
-                                ),
+                                const Icon(Icons.keyboard_arrow_right, color: Colors.grey),
                               ],
                             ),
                           ),
                         ),
                         const SizedBox(height: 20),
 
-                        // Task Name Input - This is what user can edit (Work, Workout, etc.)
+                        // Task name input
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           decoration: BoxDecoration(
@@ -325,21 +342,12 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                   color: const Color(0xFFFF9EA6),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Icon(
-                                  Icons.work,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
+                                child: const Icon(Icons.work, color: Colors.white, size: 16),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: TextField(
                                   controller: _taskNameController,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
                                   decoration: const InputDecoration(
                                     hintText: 'Enter task name (e.g., Work, Workout)',
                                     border: InputBorder.none,
@@ -350,6 +358,11 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                                     ),
                                     contentPadding: EdgeInsets.symmetric(vertical: 12),
                                   ),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],
@@ -357,7 +370,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Color Selection
+                        // Color selection circles
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: _borderColors.map((color) {
@@ -379,7 +392,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Description Input
+                        // Description input
                         TextField(
                           controller: _descriptionController,
                           maxLines: 3,
@@ -387,28 +400,22 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                             hintText: 'Enter description (optional)',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFFF9EA6),
-                              ),
+                              borderSide: const BorderSide(color: Color(0xFFFF9EA6)),
                             ),
                             contentPadding: const EdgeInsets.all(16),
                           ),
                         ),
                         const SizedBox(height: 30),
 
-                        // Save Button
+                        // Save button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
