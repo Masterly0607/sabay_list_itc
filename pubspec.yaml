@@ -65,6 +65,8 @@ flutter:
     - assets/login.png
     - assets/signup.png
     - assets/workout_image.png
+    - assets/task_form.png
+  
     
  
 
